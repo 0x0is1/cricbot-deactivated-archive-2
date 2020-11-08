@@ -78,26 +78,27 @@ def m(i):
 async def score(ctx, i=0):
     state = s()[i]['header']['state_title']
     timestamp = s()[i]['header']['start_time']
-    raw_f, raw_g = m(int(i))
-    embed = discord.Embed(title=heading(raw_g) + ', ' + match_desc(raw_f),
+    embed = discord.Embed(title=heading(m(int(i))[1]) + ', ' + match_desc(m(int(i))[0]),
                           color=0x03f8fc, timestamp=ctx.message.created_at)
-    embed.add_field(name="Series name", value=series_name(raw_f), inline=False)
-    embed.add_field(name="Venue", value=venue(raw_f), inline=False)
+    embed.add_field(name="Series name", value=series_name(
+        m(int(i))[0]), inline=False)
+    embed.add_field(name="Venue", value=venue(m(int(i))[0]), inline=False)
     embed.add_field(name="Start time", value=start_time(timestamp), inline=False)
     if state == 'Preview':
         embed.add_field(name="State: ", value="To be start", inline=False)
     else:
         try:
             embed.add_field(name="Score", value=livescore(
-                raw_f, 'bat_team') + '\n' + livescore(raw_f, 'bow_team'), inline=False)
+                m(int(i))[0], 'bat_team') + '\n' + livescore(m(int(i))[0], 'bow_team'), inline=False)
         except:
             try:
                 embed.add_field(name="Score", value=livescore(
-                    raw_f, 'bat_team'), inline=False)
+                    m(int(i))[0], 'bat_team'), inline=False)
             except:
                 embed.add_field(name='State: ', value=state, inline=False)
 
-    embed.add_field(name="Status", value=running_status(raw_f), inline=False)
+    embed.add_field(name="Status", value=running_status(
+        m(int(i))[0]), inline=False)
     await ctx.send(embed=embed)
 
 
