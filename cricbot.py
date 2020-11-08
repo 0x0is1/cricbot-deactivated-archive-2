@@ -5,27 +5,25 @@ import discord
 import os
 from datetime import datetime
 from dateutil import tz
+k = 0
 
+msg_id = 0
 
 def start_time(starting_timestamp):
     utc = datetime.fromtimestamp(int(starting_timestamp))
     time = str(utc.astimezone(tz.gettz('Asia/Kolkata')))[5:16]
     return time
 
-
 def venue(json_data):
     venue_name = json_data['venue']['name']
     venue_location = json_data['venue']['location']
     return venue_name + ', ' + venue_location
 
-
 def series_name(json_data):
     return json_data['series_name']
 
-
 def match_id(json_data):
     return json_data['header']['match_desc']
-
 
 def livescore(json_data, team_type):
     name = json_data[team_type]['name']
@@ -34,28 +32,16 @@ def livescore(json_data, team_type):
     overs = json_data[team_type]['innings'][0]['overs']
     return str(name + ' ' + score + '/' + wickets + ' (' + overs + ')')
 
-
 def heading(json_data):
     team1 = json_data['team1']['name']
     team2 = json_data['team2']['name']
     return team1 + ' vs ' + team2
 
-
 def match_desc(json_data):
     return json_data['header']['match_desc']
 
-
 def running_status(json_data):
     return json_data['header']['status']
-
-
-bot = commands.Bot(command_prefix='*')
-
-
-@bot.event
-async def on_ready():
-    print('bot is running.')
-
 
 def s():
     f = requests.get(
@@ -73,17 +59,26 @@ def m(i):
     raw_g = json.loads(g.decode('utf-8'))
     return raw_f, raw_g
 
+def schedule_embed(j):
+    embed = discord.Embed(title='Match schedule',color=0x03f8fc)
+    raw_name = s()
+    for i in range(0, j):
+        try:
+            embed.add_field(name=str(i) + '. ' +
+                            raw_name[i]['series_name'] + ',' + start_time(raw_name[i]['header']['start_time']), value=raw_name[i]['team1']['name'] + ' vs ' + raw_name[i]['team2']['name'], inline=False)
+        except Exception as e:
+            embed.add_field(name=str(i), value=e, inline=False)
+    return embed
 
-@bot.command()
-async def score(ctx, i=0):
+def score_embed(i):
     state = s()[i]['header']['state_title']
     timestamp = s()[i]['header']['start_time']
-    embed = discord.Embed(title=heading(m(int(i))[1]) + ', ' + match_desc(m(int(i))[0]),
-                          color=0x03f8fc, timestamp=ctx.message.created_at)
+    embed = discord.Embed(title=heading(m(int(i))[1]) + ', ' + match_desc(m(int(i))[0]), color=0x03f8fc)
     embed.add_field(name="Series name", value=series_name(
         m(int(i))[0]), inline=False)
     embed.add_field(name="Venue", value=venue(m(int(i))[0]), inline=False)
-    embed.add_field(name="Start time", value=start_time(timestamp), inline=False)
+    embed.add_field(name="Start time", value=start_time(
+        timestamp), inline=False)
     if state == 'Preview':
         embed.add_field(name="State: ", value="To be start", inline=False)
     else:
@@ -99,21 +94,41 @@ async def score(ctx, i=0):
 
     embed.add_field(name="Status", value=running_status(
         m(int(i))[0]), inline=False)
-    await ctx.send(embed=embed)
+    return embed
 
+bot = commands.Bot(command_prefix='*')
+
+@bot.event
+async def on_ready():
+    print('bot is running.')
+
+@bot.event
+async def on_reaction_add(reaction, user):
+    channel = reaction.message.channel
+    if user.bot:
+        pass
+    else:
+        if msg_id == 0:
+            pass
+        else:
+            message = await channel.fetch_message(msg_id)
+            try:
+                await message.remove_reaction('🔄', user)
+            except:
+                pass
+            await message.edit(embed=score_embed(k))
+
+@bot.command()
+async def score(ctx,i=0):
+    message = await ctx.send(embed=score_embed(i))
+    global msg_id
+    msg_id = message.id
+    await message.add_reaction('🔄')
+    k = i
 
 @bot.command()
 async def schedule(ctx, j=5):
-    embed = discord.Embed(title='Match schedule',
-                          color=0x03f8fc, timestamp=ctx.message.created_at)
-    raw_name = s()
-    for i in range(0, j):
-        try:
-            embed.add_field(name=str(i) + '. ' +
-                            raw_name[i]['series_name'] + ',' + start_time(raw_name[i]['header']['start_time']), value=raw_name[i]['team1']['name'] + ' vs ' + raw_name[i]['team2']['name'], inline=False)
-        except Exception as e:
-            embed.add_field(name=str(i), value=e, inline=False)
-    await ctx.send(embed=embed)
+    await ctx.send(embed=schedule_embed(j))
 
 auth_token = os.environ.get('DISCORD_BOT_TOKEN')
 bot.run(auth_token)
