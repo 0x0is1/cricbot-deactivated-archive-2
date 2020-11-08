@@ -1,0 +1,4 @@
+discord
+async-timeout
+requests
+python-dateutil
