@@ -70,6 +70,43 @@ def schedule_embed(j):
             embed.add_field(name=str(i), value=e, inline=False)
     return embed
 
+def help_embed(cmd):
+    def s_help():
+        embed = discord.Embed(title="CricBot", color=0x03f8fc)
+        embed.add_field(name="Description:", value="I am a discord bot made to see cricket livescores on discord server. I am under development. you are using my Beta version", inline=False)
+        embed.add_field(name="Commands:", value="*score: Get you score of available match \n *schedule: Get you list and index of match in the list", inline=False)
+        embed.add_field(
+            name="Help commands:", value="Get help for specific command: *help score, *help schedule", inline=False)
+        embed.add_field(
+            name="Invite: ", value="You can invite me to your server by clicking on this link: https://discord.com/api/oauth2/authorize?client_id=757685102183448709&permissions=26688&scope=bot")
+        return embed
+
+    def score_help():
+        embed = discord.Embed(title="CricBot", color=0x03f8fc)
+        embed.add_field(
+            name="Description:", value="This command is used for view score with supplied item number. You can get item number from *schedule command.", inline=False)
+        embed.add_field(
+            name="Example:", value="if match item number is 3, type *score 3, if 0, type *score 0", inline=False)
+        embed.add_field(
+            name="Invite: ", value="You can invite me to your server by clicking on this link: https://discord.com/api/oauth2/authorize?client_id=757685102183448709&permissions=26688&scope=bot")
+        return embed
+
+    def schedule_help():
+        embed = discord.Embed(title="CricBot", color=0x03f8fc)
+        embed.add_field(
+            name="Description:", value="This command is used for view upcoming and live matches list.", inline=False)
+        embed.add_field(
+            name="Example:", value="if you want top 5 matches details, type *schedule 5", inline=False)
+        embed.add_field(
+            name="Invite: ", value="You can invite me to your server by clicking on this link: https://discord.com/api/oauth2/authorize?client_id=757685102183448709&permissions=26688&scope=bot")
+        return embed
+
+    commands = {'help': s_help(), 'score': score_help(), 'schedule': schedule_help()}    
+    try:
+        return commands[cmd]
+    except:
+        pass
+
 def score_embed(i):
     state = s()[i]['header']['state_title']
     timestamp = s()[i]['header']['start_time']
@@ -97,6 +134,7 @@ def score_embed(i):
     return embed
 
 bot = commands.Bot(command_prefix='*')
+bot.remove_command('help')
 
 @bot.event
 async def on_ready():
@@ -129,6 +167,14 @@ async def score(ctx,i=0):
 @bot.command()
 async def schedule(ctx, j=5):
     await ctx.send(embed=schedule_embed(j))
+
+@bot.command()
+async def help(ctx, item='help'):
+    embed = help_embed(item)
+    try:
+        await ctx.send(embed=embed)
+    except:
+        pass
 
 auth_token = os.environ.get('DISCORD_BOT_TOKEN')
 bot.run(auth_token)
