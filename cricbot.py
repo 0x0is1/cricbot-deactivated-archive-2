@@ -162,6 +162,7 @@ async def score(ctx,i=0):
     global msg_id
     msg_id = message.id
     await message.add_reaction('🔄')
+    global k
     k = i
 
 @bot.command()
