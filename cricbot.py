@@ -1,3 +1,4 @@
+from discord import channel
 import requests
 import json
 from discord.ext import commands
@@ -7,7 +8,7 @@ from datetime import datetime
 from dateutil import tz
 k = 0
 
-msg_id = 0
+msg_id = {}
 
 def start_time(starting_timestamp):
     utc = datetime.fromtimestamp(int(starting_timestamp))
@@ -71,6 +72,7 @@ def schedule_embed(j):
     return embed
 
 def help_embed(cmd):
+    source_code = 'You can get source code from here: https://github.com/0x0is1/cricbot'
     def s_help():
         embed = discord.Embed(title="CricBot", color=0x03f8fc)
         embed.add_field(name="Description:", value="I am a discord bot made to see cricket livescores on discord server. I am under development. you are using my Beta version", inline=False)
@@ -79,6 +81,7 @@ def help_embed(cmd):
             name="Help commands:", value="Get help for specific command: *help score, *help schedule", inline=False)
         embed.add_field(
             name="Invite: ", value="You can invite me to your server by clicking on this link: https://discord.com/api/oauth2/authorize?client_id=757685102183448709&permissions=26688&scope=bot")
+        embed.add_field(name="Source: ", value=source_code)
         return embed
 
     def score_help():
@@ -89,6 +92,7 @@ def help_embed(cmd):
             name="Example:", value="if match item number is 3, type *score 3, if 0, type *score 0", inline=False)
         embed.add_field(
             name="Invite: ", value="You can invite me to your server by clicking on this link: https://discord.com/api/oauth2/authorize?client_id=757685102183448709&permissions=26688&scope=bot")
+        embed.add_field(name="Source: ", value=source_code)
         return embed
 
     def schedule_help():
@@ -99,6 +103,8 @@ def help_embed(cmd):
             name="Example:", value="if you want top 5 matches details, type *schedule 5", inline=False)
         embed.add_field(
             name="Invite: ", value="You can invite me to your server by clicking on this link: https://discord.com/api/oauth2/authorize?client_id=757685102183448709&permissions=26688&scope=bot")
+        embed.add_field(name="Source: ", value=source_code)
+
         return embed
 
     commands = {'help': s_help(), 'score': score_help(), 'schedule': schedule_help()}    
@@ -143,13 +149,16 @@ async def on_ready():
 @bot.event
 async def on_reaction_add(reaction, user):
     channel = reaction.message.channel
+    channel_id = channel.id
+    message_id = reaction.message.id
+    msg_id[channel_id] = message_id
     if user.bot:
         pass
     else:
-        if msg_id == 0:
+        if msg_id[channel_id] == 0:
             pass
         else:
-            message = await channel.fetch_message(msg_id)
+            message = await channel.fetch_message(msg_id[channel_id])
             try:
                 await message.remove_reaction('🔄', user)
             except:
@@ -159,8 +168,9 @@ async def on_reaction_add(reaction, user):
 @bot.command()
 async def score(ctx,i=0):
     message = await ctx.send(embed=score_embed(i))
+    channel_id = ctx.message.channel.id
     global msg_id
-    msg_id = message.id
+    msg_id[channel_id] = message.id
     await message.add_reaction('🔄')
     global k
     k = i
