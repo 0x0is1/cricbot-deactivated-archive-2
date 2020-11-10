@@ -137,12 +137,10 @@ def score_embed(i):
         embed.add_field(name="State: ", value="To be start", inline=False)
     else:
         try:
-            embed.add_field(name="Score", value=livescore(
-                score_data_provider(int(i))[0], 'bat_team') + '\n' + livescore(int(score_data_provider(i))[0], 'bow_team'), inline=False)
+            embed.add_field(name="Score", value=livescore(score_data_provider(int(i))[0], 'bat_team') + '\n' + livescore(score_data_provider(int(i))[0], 'bow_team'), inline=False)
         except:
             try:
-                embed.add_field(name="Score", value=livescore(
-                    score_data_provider(int(i))[0], 'bat_team'), inline=False)
+                embed.add_field(name="Score", value=livescore(score_data_provider(int(i))[0], 'bat_team'), inline=False)
             except:
                 embed.add_field(name='State: ', value=state, inline=False)
 
